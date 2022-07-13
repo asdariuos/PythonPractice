@@ -138,7 +138,7 @@ def DAS_sim(s1,s2):#s1>=s2
 	return resприговор#Мой алгоритм, работает плохо.
 
 
-def FillDictObj(Objdict):
+def FillDictObj(Objdict):#Заполнение Словаря объектов из файла.
 	key = ""
 	value = ""
 	file = open("datatxt.txt",encoding="utf8")
@@ -152,10 +152,9 @@ def FillDictObj(Objdict):
 		else:
 			value = line
 		i=i+1
-	return Objdict#Заполнение Словаря объектов из файла.
+	return Objdict
 
-
-def FillDictNum(Somedict):
+def FillDictNum(Somedict):#Заполнение Словаря числительных из файла.
 	key=""
 	value=""
 	i=1
@@ -176,13 +175,13 @@ def all_the_same(lst):
 		return True
 	return len(lst) == lst.count(lst[0])
 
-def PreAnalysis(s1,s2):
+def PreAnalysis(s1,s2):#Выпиливание лишнего текста, приводим к нормальной форме.
 	s1=s1.replace('ё','е')
 	s2=s2.replace('ё','е')
-	s1=s1.replace('(',' ')
-	s1=s1.replace(')',' ')			
-	s2=s2.replace('(',' ')
-	s2=s2.replace(')',' ')
+	s1=s1.replace('(',' ')# Important or not? Московское шоссе (п Прикольный)/ Московское шоссе 
+	s1=s1.replace(')',' ')# ("-") Но только после редакц
+	s2=s2.replace('(',' ')#
+	s2=s2.replace(')',' ')#
 	s1=s1.lower()
 	s2=s2.lower()	
 
@@ -193,12 +192,13 @@ def PreAnalysis(s1,s2):
 	s2=' '.join(lst2)#
 
 	keyObjs1 = ( set(lst1) & set(Objdict.keys()))#Ищем пересечение множества объектов в алфавите объектов и в наших словах and set(Objdict.values()) & set(lst1)
-	keyObjs2 = ( set(lst2) & set(Objdict.keys()))#& set(Objdict.values())
+	keyObjs2 = ( set(lst2) & set(Objdict.keys()))#& set(Objdict.values()) Обдумываение нужды.
 	keyNum1 = (set(lst1) & set(Numdict.keys()))#
 	keyNum2 = (set(lst2) & set(Numdict.keys()))
 
 	StrNums1=""
 	StrNums2=""
+
 	for i in keyNum1:
 		StrNums1 = StrNums1 + i + " "
 			
@@ -208,24 +208,29 @@ def PreAnalysis(s1,s2):
 	StrNums1=StrNums1.split()
 	StrNums2=StrNums2.split()
 			
-	N=0
-	if (len(keyNum1)!= 0):
+	N1=0
+	if (len(keyNum1)!= 0):#Перевод числа из листа слов в цифры по словарю
 		for i in StrNums1:
-			N=N+int(Numdict[i])
+			N1=N1+int(Numdict[i])
 			s1=s1.replace(i,'')
 			s1=s1.strip()
-	if (N!=0):
-		s1=s1 + " " + str(N)
-	N=0
+	if (N1!=0):
+		s1=s1 + " " + str(N1)
+	
+	N2=0
 	if (len(keyNum2)!= 0):
 		for i in StrNums2:
-			N=N+int(Numdict[i])
+			N2=N2+int(Numdict[i])
 			s2=s2.replace(i,'')
 			s2=s2.strip()
-	if (N!=0):
-		s2=s2 + " " + str(N)
+	if (N2!=0):
+		s2=s2 + " " + str(N2)
 
-	addition1=""#Часть слова отвечающая за тип объекта
+	Preres="Unknown"
+	if((N1!=N2) and ((any(map(str.isdigit,s1))) and (any(map(str.isdigit,s2)))) and (len(keyNum1)!=len(keyNum2))):#Если числительные не равны то разные улицы
+		Preres=str(0)
+
+	addition1=""#Часть 1 предложения отвечающая за тип объекта
 	addition2=""
 	for i in keyObjs1:
 		addition1 = addition1 + " " + i
@@ -294,7 +299,7 @@ def PreAnalysis(s1,s2):
 	lst2=s2.split()
 
 	lst3=[]
-	for i in lst1:
+	for i in lst1:#Увеличение границы верных значений
 		if((i[-2:]=='ая') or (i[-2:]=='ой') or (i[-2:]=='ое') or (i[-2:]=='ый') or (i[-2:]=='ий') or (i[-2:]=='яя')):
 			i=i[:-2]
 			lst3.append(i)
@@ -304,8 +309,7 @@ def PreAnalysis(s1,s2):
 		elif(((i[-2:]=='ая') or (i[-2:]=='ой') or (i[-2:]=='ое') or (i[-2:]=='ый') or (i[-2:]=='ого')  or (i[-2:]=='ий') or (i[-2:]=='яя') ) == False):
 			lst3.append(i)
 	lst4=[]
-	for i in lst2:
-
+	for i in lst2:#Увеличение границы верных значений
 		if((i[-2:]=='ая') or (i[-2:]=='ой') or (i[-2:]=='ое') or (i[-2:]=='ый') or (i[-2:]=='ий') or (i[-2:]=='яя')):
 			i=i[:-2]
 			lst4.append(i)
@@ -316,12 +320,12 @@ def PreAnalysis(s1,s2):
 			lst4.append(i)
 
 	
-	return [lst3,lst4,typeOfObj]
+	return [lst3,lst4,typeOfObj,Preres]
 
 #насколько похожи предложения. разбиваем на слова
-Objdict = {}#Словарь для проверки на тип объекта(Улица, проспект и т.д.).
-Numdict = {}#Словарь для проверки числительных
-
+Objdict = {}#Словарь для проверки на тип объекта(Улица, проспект и т.д.). Think something about try / catch and auto adding words in dictionary file. However.... 
+Numdict = {}#Словарь для проверки числительных. Should i add search in values too (Objdict)?
+#Закрыть файл после чтения.
 FillDictObj(Objdict)
 FillDictNum(Numdict)
 
@@ -367,16 +371,19 @@ for channel in collection0.find():
 				lst1=lst[0]
 				lst2=lst[1]
 				typtypeOfObjRes=lst[2]
-				if(len(typtypeOfObjRes)==0):
+				Preres=lst[3]
+				if((len(typtypeOfObjRes)==0) or (Preres==str(0))):#Если цифры не совпадают, то бан.
 					res=0
 				else:
 					for i in itertools.permutations(lst1):
 						s1 = " ".join(i)
+						s1=s1.replace("-","")#Обработка тире
 						for j in itertools.permutations(lst2):
 							s2 = " ".join(j)
+							s2=s2.replace("-","")#Обработка тире
 							if(res<round(jaro_distance(s1, s2),6)):
 								res=round(jaro_distance(s1, s2),6)
-				if(res<1):
+				if(res==0):
 					counterMinus+=1
 					print("hmm")
 				else:
